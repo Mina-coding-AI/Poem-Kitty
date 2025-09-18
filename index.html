@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="可爱的小猫陪你学习唐诗！点击小猫，听它用童声朗读经典唐诗。包含12首著名唐诗，寓教于乐。">
+    <meta name="keywords" content="唐诗,古诗,小猫,童声朗读,教育游戏,中华文化,诗歌学习">
+    <meta name="author" content="Kitten Poetry Game">
+    <meta property="og:title" content="小猫的奇幻旅程 - 唐诗朗诵游戏">
+    <meta property="og:description" content="可爱的小猫陪你学习唐诗！点击小猫，听它用童声朗读经典唐诗。">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="小猫的奇幻旅程 - 唐诗朗诵游戏">
+    <meta name="twitter:description" content="可爱的小猫陪你学习唐诗！点击小猫，听它用童声朗读经典唐诗。">
+    <title>小猫的奇幻旅程 - 唐诗朗诵游戏</title>
+    <link rel="icon" type="image/png" href="kitten2.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #FFF8DC 0%, #F5E6D3 100%);
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            cursor: pointer;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #FFF8DC 0%, #F5E6D3 100%);
+            overflow: hidden;
+        }
+
+        .game-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 248, 220, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 60% 20%, rgba(245, 230, 211, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .kitten-container {
+            position: relative;
+            width: 50vmin;
+            height: 50vmin;
+            transition: transform 0.3s ease;
+            /* Ensure container is visible even without image */
+            min-width: 200px;
+            min-height: 200px;
+            border: 2px solid transparent;
+        }
+
+        .kitten-container.spinning {
+            animation: headTurn 2s ease-in-out infinite alternate;
+        }
+
+        .kitten-container.turn-to-user {
+            transform: scale(1.1) rotateY(0deg);
+            animation: none;
+        }
+
+        @keyframes headTurn {
+            0% { transform: rotateY(-15deg); }
+            100% { transform: rotateY(15deg); }
+        }
+
+        .kitten-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.2));
+            /* Fallback styling if image doesn't load */
+            background: linear-gradient(45deg, #FFE4E1, #FFC0CB);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #FF69B4;
+        }
+
+        .subtitle {
+            position: absolute;
+            top: -120px; /* Move higher to avoid any overlap */
+            right: -100px; /* Position to the right side completely */
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 25px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            max-width: 350px; /* Further reduce width */
+            text-align: left; /* Left align for better readability */
+            font-size: 16px; /* Slightly smaller font */
+            line-height: 1.6;
+            color: #333;
+            border: 2px solid #f0d4a0;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            white-space: normal; /* Allow text wrapping */
+            overflow: visible;
+            z-index: 10; /* Ensure it appears above other elements */
+        }
+
+        .subtitle.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .subtitle .poem-line {
+            display: block;
+            margin: 5px 0;
+            font-weight: 500;
+        }
+
+        .subtitle .poem-title {
+            font-weight: bold;
+            color: #8B4513;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .subtitle .poem-author {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .click-hint {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-size: 16px;
+            color: #666;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .meow-sound {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: #ff6b6b;
+            opacity: 0;
+            pointer-events: none;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .meow-sound.show {
+            animation: meowPop 0.8s ease-out forwards;
+        }
+
+        @keyframes meowPop {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="kitten-container spinning" id="kittenContainer">
+            <!-- Use the transparent PNG kitten image with JPG fallback -->
+            <img src="kitten2.png" class="kitten-image" alt="小猫咪" id="kittenImage" onerror="this.src='kitten.jpg'; console.log('Fallback to kitten.jpg');">
+            
+            <div class="subtitle" id="subtitle">
+                <div class="poem-title" id="poemTitle"></div>
+                <div class="poem-content" id="poemContent"></div>
+                <div class="poem-author" id="poemAuthor"></div>
+            </div>
+            
+            <div class="meow-sound" id="meowSound">喵~</div>
+        </div>
+        
+        <div class="click-hint" id="clickHint">点一下这只可爱的小猫，听听它会说什么吧！</div>
+    </div>
+
+    <script>
+        class KittenPoetryGame {
+            constructor() {
+                this.kittenContainer = document.getElementById('kittenContainer');
+                this.subtitle = document.getElementById('subtitle');
+                this.meowSound = document.getElementById('meowSound');
+                this.clickHint = document.getElementById('clickHint');
+                this.poemTitle = document.getElementById('poemTitle');
+                this.poemContent = document.getElementById('poemContent');
+                this.poemAuthor = document.getElementById('poemAuthor');
+                
+                this.isReciting = false;
+                this.audioContext = null;
+                this.currentUtterance = null;
+                this.useTTSMakerAudio = true; // 优先使用TTSMaker音频
+                this.currentAudio = null;
+                
+                this.poems = [
+                    {
+                        title: "静夜思",
+                        author: "李白",
+                        content: [
+                            "床前明月光，",
+                            "疑是地上霜。",
+                            "举头望明月，",
+                            "低头思故乡。"
+                        ]
+                    },
+                    {
+                        title: "春晓",
+                        author: "孟浩然",
+                        content: [
+                            "春眠不觉晓，",
+                            "处处闻啼鸟。",
+                            "夜来风雨声，",
+                            "花落知多少。"
+                        ]
+                    },
+                    {
+                        title: "登鹳雀楼",
+                        author: "王之涣",
+                        content: [
+                            "白日依山尽，",
+                            "黄河入海流。",
+                            "欲穷千里目，",
+                            "更上一层楼。"
+                        ]
+                    },
+                    {
+                        title: "相思",
+                        author: "王维",
+                        content: [
+                            "红豆生南国，",
+                            "春来发几枝。",
+                            "愿君多采撷，",
+                            "此物最相思。"
+                        ]
+                    },
+                    {
+                        title: "江雪",
+                        author: "柳宗元",
+                        content: [
+                            "千山鸟飞绝，",
+                            "万径人踪灭。",
+                            "孤舟蓑笠翁，",
+                            "独钓寒江雪。"
+                        ]
+                    },
+                    {
+                        title: "悯农",
+                        author: "李绅",
+                        content: [
+                            "锄禾日当午，",
+                            "汗滴禾下土。",
+                            "谁知盘中餐，",
+                            "粒粒皆辛苦。"
+                        ]
+                    },
+                    {
+                        title: "回乡偶书",
+                        author: "贺知章",
+                        content: [
+                            "少小离家老大回，",
+                            "乡音无改鬓毛衰。",
+                            "儿童相见不相识，",
+                            "笑问客从何处来。"
+                        ]
+                    },
+                    {
+                        title: "咏鹅",
+                        author: "骆宾王",
+                        content: [
+                            "鹅，鹅，鹅，",
+                            "曲项向天歌。",
+                            "白毛浮绿水，",
+                            "红掌拨清波。"
+                        ]
+                    },
+                    {
+                        title: "草",
+                        author: "白居易",
+                        content: [
+                            "离离原上草，",
+                            "一岁一枯荣。",
+                            "野火烧不尽，",
+                            "春风吹又生。"
+                        ]
+                    },
+                    {
+                        title: "山行",
+                        author: "杜牧",
+                        content: [
+                            "远上寒山石径斜，",
+                            "白云深处有人家。",
+                            "停车坐爱枫林晚，",
+                            "霜叶红于二月花。"
+                        ]
+                    },
+                    {
+                        title: "枫桥夜泊",
+                        author: "张继",
+                        content: [
+                            "月落乌啼霜满天，",
+                            "江枫渔火对愁眠。",
+                            "姑苏城外寒山寺，",
+                            "夜半钟声到客船。"
+                        ]
+                    },
+                    {
+                        title: "望庐山瀑布",
+                        author: "李白",
+                        content: [
+                            "日照香炉生紫烟，",
+                            "遥看瀑布挂前川。",
+                            "飞流直下三千尺，",
+                            "疑是银河落九天。"
+                        ]
+                    }
+                ];
+                
+                this.initGame();
+            }
+            
+            initGame() {
+                // 初始化音频上下文
+                this.initAudio();
+                
+                // 检查图片加载状态
+                this.checkImageLoad();
+                
+                // 添加点击事件监听器
+                this.kittenContainer.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!this.isReciting) {
+                        this.recitePoem();
+                    }
+                });
+                
+                // 开始旋转动画
+                this.startSpinning();
+            }
+            
+            checkImageLoad() {
+                const img = document.getElementById('kittenImage');
+                if (img.complete) {
+                    console.log('Image loaded successfully');
+                } else {
+                    img.onload = () => console.log('Image loaded successfully');
+                    img.onerror = (e) => {
+                        console.error('Image failed to load:', e);
+                        this.handleImageError();
+                    };
+                }
+            }
+            
+            handleImageError() {
+                // 创建一个简单的占位符
+                const img = document.getElementById('kittenImage');
+                img.style.backgroundColor = '#FFE4E1';
+                img.style.border = '3px dashed #FF69B4';
+                img.style.display = 'flex';
+                img.style.alignItems = 'center';
+                img.style.justifyContent = 'center';
+                img.style.fontSize = '24px';
+                img.style.color = '#FF69B4';
+                img.alt = '🐱 小猫咪图片加载中...';
+            }
+            
+            initAudio() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.log('Web Audio API not supported');
+                }
+                
+                // 初始化语音合成声音列表
+                this.initVoices();
+            }
+            
+            initVoices() {
+                if ('speechSynthesis' in window) {
+                    // 等待声音列表加载完成
+                    const loadVoices = () => {
+                        const voices = speechSynthesis.getVoices();
+                        if (voices.length > 0) {
+                            console.log('可用声音数量:', voices.length);
+                            const chineseVoices = voices.filter(v => v.lang.includes('zh') || v.lang.includes('CN'));
+                            console.log('中文声音数量:', chineseVoices.length);
+                        }
+                    };
+                    
+                    // 声音列表可能需要异步加载
+                    if (speechSynthesis.getVoices().length === 0) {
+                        speechSynthesis.addEventListener('voiceschanged', loadVoices);
+                    } else {
+                        loadVoices();
+                    }
+                }
+            }
+            
+            startSpinning() {
+                this.kittenContainer.classList.remove('turn-to-user');
+                this.kittenContainer.classList.add('spinning');
+                this.clickHint.style.display = 'block';
+            }
+            
+            stopSpinning() {
+                this.kittenContainer.classList.remove('spinning');
+                this.kittenContainer.classList.add('turn-to-user');
+                this.clickHint.style.display = 'none';
+            }
+            
+            async recitePoem() {
+                if (this.isReciting) return;
+                
+                this.isReciting = true;
+                this.stopSpinning();
+                
+                // 播放喵叫声效果
+                await this.playMeowSound();
+                
+                // 等待喵叫声动画完成
+                await this.sleep(1000);
+                
+                // 选择一首随机诗歌
+                const poem = this.getRandomPoem();
+                
+                // 显示字幕
+                this.showSubtitle(poem);
+                
+                // 朗诵诗歌
+                await this.speakPoem(poem);
+                
+                // 隐藏字幕
+                this.hideSubtitle();
+                
+                // 等待一段时间后恢复旋转
+                await this.sleep(1000);
+                
+                this.isReciting = false;
+                this.startSpinning();
+            }
+            
+            playMeowSound() {
+                return new Promise((resolve) => {
+                    // 显示喵叫动画
+                    this.meowSound.classList.add('show');
+                    
+                    // 播放喵叫声音（使用Web Audio API生成简单音效）
+                    this.playMeowAudio();
+                    
+                    setTimeout(() => {
+                        this.meowSound.classList.remove('show');
+                        resolve();
+                    }, 800);
+                });
+            }
+            
+            playMeowAudio() {
+                if (!this.audioContext) return;
+                
+                try {
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    // 设置音频参数模拟猫叫声
+                    oscillator.frequency.setValueAtTime(400, this.audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(600, this.audioContext.currentTime + 0.1);
+                    oscillator.frequency.exponentialRampToValueAtTime(300, this.audioContext.currentTime + 0.3);
+                    
+                    gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.3, this.audioContext.currentTime + 0.1);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.4);
+                    
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + 0.4);
+                } catch (e) {
+                    console.log('Audio generation failed:', e);
+                }
+            }
+            
+            getRandomPoem() {
+                const randomIndex = Math.floor(Math.random() * this.poems.length);
+                return this.poems[randomIndex];
+            }
+            
+            showSubtitle(poem) {
+                this.poemTitle.textContent = poem.title;
+                this.poemContent.innerHTML = poem.content.map(line => 
+                    `<span class="poem-line">${line}</span>`
+                ).join('');
+                this.poemAuthor.textContent = `—— ${poem.author}`;
+                
+                this.subtitle.classList.add('show');
+            }
+            
+            hideSubtitle() {
+                this.subtitle.classList.remove('show');
+            }
+            
+            speakPoem(poem) {
+                return new Promise((resolve) => {
+                    console.log(`开始朗读诗歌: ${poem.title}`);
+                    // 先尝试使用TTSMaker音频文件
+                    if (this.useTTSMakerAudio) {
+                        console.log('优先使用TTSMaker音频文件');
+                        this.playTTSMakerAudio(poem, resolve);
+                    } else {
+                        this.useBrowserTTS(poem, resolve);
+                    }
+                });
+            }
+            
+            playTTSMakerAudio(poem, resolve) {
+                // 根据诗歌索引找到对应的音频文件
+                const poemIndex = this.poems.findIndex(p => p.title === poem.title) + 1;
+                const audioPath = `audio/poem_${poemIndex}_${poem.title}.mp3.mp3`;
+                
+                this.currentAudio = new Audio();
+                
+                // 设置音频源并添加错误处理
+                this.currentAudio.src = audioPath;
+                this.currentAudio.preload = 'metadata';
+                
+                this.currentAudio.onloadeddata = () => {
+                    console.log(`🎵 使用TTSMaker音频: ${audioPath}`);
+                    this.currentAudio.play().catch(e => {
+                        console.log('音频播放需要用户手势，切换到浏览器TTS');
+                        this.useBrowserTTS(poem, resolve);
+                    });
+                };
+                
+                this.currentAudio.onended = () => {
+                    this.currentAudio = null;
+                    resolve();
+                };
+                
+                this.currentAudio.onerror = (e) => {
+                    console.log(`❌ TTSMaker音频加载失败: ${audioPath}，切换到浏览器TTS`);
+                    this.currentAudio = null;
+                    this.useBrowserTTS(poem, resolve);
+                };
+                
+                // 开始加载音频
+                this.currentAudio.load();
+            }
+            
+            useBrowserTTS(poem, resolve) {
+                if (!('speechSynthesis' in window)) {
+                    console.log('Speech synthesis not supported');
+                    setTimeout(resolve, 3000);
+                    return;
+                }
+                
+                // 使用简单文本，不使用SSML标记，避免读出代码
+                const titleText = poem.title;
+                const contentText = poem.content.join('');
+                const authorText = `作者${poem.author}`;
+                
+                const fullText = `${titleText}。${contentText}${authorText}`;
+                
+                const utterance = new SpeechSynthesisUtterance(fullText);
+                utterance.lang = 'zh-CN';
+                
+                // 童音参数设置
+                utterance.rate = 0.5;   // 慢语速
+                utterance.pitch = 2.0;  // 高音调，接近童音
+                utterance.volume = 0.9; // 清晰音量
+                
+                // 选择最适合的童音声音
+                const voices = speechSynthesis.getVoices();
+                const chineseVoices = voices.filter(voice => 
+                    voice.lang.includes('zh') || voice.lang.includes('CN')
+                );
+                
+                // 优先级：儿童声音 > 女性声音 > 年轻声音
+                let selectedVoice = chineseVoices.find(voice => {
+                    const name = voice.name.toLowerCase();
+                    return name.includes('child') || name.includes('kid') || 
+                           name.includes('儿童') || name.includes('小孩');
+                });
+                
+                if (!selectedVoice) {
+                    selectedVoice = chineseVoices.find(voice => {
+                        const name = voice.name.toLowerCase();
+                        return name.includes('female') || name.includes('woman') ||
+                               name.includes('女') || name.includes('xiaoxiao') ||
+                               name.includes('xiaoyi') || name.includes('xiaoya');
+                    });
+                }
+                
+                if (!selectedVoice && chineseVoices.length > 0) {
+                    selectedVoice = chineseVoices[0];
+                }
+                
+                if (selectedVoice) {
+                    utterance.voice = selectedVoice;
+                    console.log('使用浏览器TTS声音:', selectedVoice.name);
+                }
+                
+                utterance.onend = () => {
+                    resolve();
+                };
+                
+                utterance.onerror = () => {
+                    console.log('Speech synthesis error');
+                    setTimeout(resolve, 3000);
+                };
+                
+                this.currentUtterance = utterance;
+                speechSynthesis.speak(utterance);
+            }
+            
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+        
+        // 初始化游戏
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🐱 小猫唐诗游戏已加载 - Kitten Poetry Game Loaded');
+            console.log('🎵 TTSMaker音频已准备就绪 - TTSMaker Audio Ready');
+            new KittenPoetryGame();
+        });
+    </script>
+</body>
+</html>
